@@ -29,16 +29,38 @@ $router->options(
 $router->group(['namespace' => API_VERSION, 'prefix' => API_VERSION, 'middleware' => 'cors'], function () use ($router) {
     $router->post('/login', ['uses' => 'UserController@login']);
     $router->post('/register', ['uses' => 'UserController@register']);
-    $router->post('/reset/password', ['uses' => 'UserController@resetPassword']);
+    $router->post('/forgot-password', ['uses' => 'UserController@forgotPassword']);
+    $router->post('/change-password', ['uses' => 'UserController@changePassword']);
 });
-/*
-$router->group(['namespace' => API_VERSION, 'prefix' => API_VERSION, 'middleware' => 'cors'], function () use ($router) {
 
-});
-*/
 /** Routes with auth */
 $router->group(['namespace' => API_VERSION, 'prefix' => API_VERSION, 'middleware' => 'cors|jwt'], function () use ($router) {
-    $router->post('/approve', ['uses' => 'UserController@approve']);
-    $router->post('/edit', ['uses' => 'UserController@edit']);
-    $router->post('/crud', ['uses' => 'UserController@crud']);
+    $router->group(['prefix' => 'user'], function () use ($router) {
+        //user panel
+        $router->get('/', ['uses' => 'UserController@get']);
+        $router->patch('/', ['uses' => 'UserController@update']);
+        //tasks for user
+        $router->get('/tasks', ['uses' => 'UserController@getTasks']);
+        $router->group(['prefix' => 'task'], function () use ($router) {
+            $router->post('/', ['uses' => 'UserController@createTask']);
+            $router->patch('/{id}', ['uses' => 'UserController@updateTask']);
+        });
+    });
+
+    $router->group(['prefix' => 'admin', 'middleware' => 'admin'], function () use ($router) {
+        //users for admin
+        $router->get('/users', ['uses' => 'AdminController@getUsers']);
+        $router->group(['prefix' => 'user'], function () use ($router) {
+            $router->post('/', ['uses' => 'AdminController@createUser']);
+            $router->patch('/{id}', ['uses' => 'AdminController@updateUser']);
+            $router->delete('/{id}', ['uses' => 'AdminController@deleteUser']);
+        });
+        //tasks for admin
+        $router->get('/tasks', ['uses' => 'AdminController@getTasks']);
+        $router->group(['prefix' => 'task'], function () use ($router) {
+            $router->post('/', ['uses' => 'AdminController@createTask']);
+            $router->patch('/{id}', ['uses' => 'AdminController@updateTask']);
+            $router->delete('/{id}', ['uses' => 'AdminController@deleteTask']);
+        });
+    });
 });

@@ -9,9 +9,20 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
 
+/**
+ * Class User
+ *
+ * @package App
+ */
 class User extends Model implements AuthenticatableContract, AuthorizableContract, JwtPayloadInterface
 {
     use Authenticatable, Authorizable;
+
+    /** @var int */
+    const STATUS_ACTIVE = 1;
+
+    /** @var int */
+    const STATUS_INACTIVE = 0;
 
     /**
      * The attributes that are mass assignable.
@@ -19,7 +30,11 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
      * @var array
      */
     protected $fillable = [
-        'name', 'email','role_id', 'status', 'password'
+        'name',
+        'email',
+        'role_id',
+        'status',
+        'forgot_code'
     ];
 
     /**
@@ -27,11 +42,21 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
      *
      * @var array
      */
-   /* protected $hidden = [
+    protected $hidden = [
         'password',
     ];
-   */
 
+    protected $visible = [
+        'name',
+        'email',
+        'role_id'
+    ];
+
+    /**
+     * Jwt payload
+     *
+     * @return array
+     */
     public function getPayload()
     {
         return [
@@ -43,9 +68,34 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
         ];
     }
 
+    /**
+     * User role
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
     public function role()
     {
-        return $this->belongsTo(Role::class);
+        return $this->belongsTo('App/Role');
+    }
+
+    /**
+     * User assigned tasks
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function tasks()
+    {
+        return $this->hasMany('App\Task', 'assign', 'id');
+    }
+
+    /**
+     * User notifications
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function notifications()
+    {
+        return $this->hasMany('App/Notification');
     }
 
     /**
@@ -65,107 +115,13 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
         if (!$user) {
             return false;
         }
-        /*
-        if ($userPassword == $user->password){
-            return $user;
-        }
-        */
+
         $password = $user->password;
+
         if (app('hash')->check($userPassword, $password)) {
             return $user;
         }
 
         return false;
-    }
-
-    public function resetPassword($userEmail, $userPassword){
-        $user = $this->where([
-            'email' => $userEmail,
-        ])->get()->first();
-
-        if (!$user) {
-            return false;
-        }
-
-        $user->password = app('hash')->make($userPassword);
-        $user->save();
-
-        return $user;
-    }
-
-    public function register($userEmail, $userPassword, $userName)
-    {
-        $user = User::create([
-            'email' => $userEmail,
-            'password' => app('hash')->make($userPassword),
-            'name' => $userName,
-        ]);
-
-        return $user;
-    }
-
-    public function approve($userEmail, $userStatus){
-        $user = $this->where([
-            'email' => $userEmail,
-        ])->get()->first();
-
-        if (!$user) {
-            return false;
-        }
-
-        $user->status = $userStatus;
-        $user->save();
-
-        return $user;
-
-
-    }
-
-    public function edit($userId, $userEmail, $userPassword, $userName){
-        $user = $this->where([
-            'id' => $userId,
-        ])->get()->first();
-
-
-        $user->name = $userName;
-        $user->email = $userEmail;
-        if(!empty($userPassword)){
-            $user->password = app('hash')->make($userPassword);
-        }
-
-        $user->save();
-
-        return $user;
-    }
-
-    public function crud($userId, $userEmail, $userPassword, $userName, $userStatus, $userRole){
-        $user = $this->where([
-            'id' => $userId,
-        ])->get->first();
-
-        if (!$user) {
-            return false;
-        }
-        if(!empty($userEmail)){
-            $user->email = $userEmail;
-        }
-        if(!empty($userPassword)){
-            $user->password = app('hash')->make($userPassword);
-        }
-        if(!empty($userName)){
-            $user->name = $userName;
-        }
-
-        if(!empty($userStatus)){
-            $user->status = $userStatus;
-        }
-
-        if(!empty($userRole)){
-            $user->role_id = $userRole;
-        }
-
-        $user->save();
-
-        return $user;
     }
 }
