@@ -1,5 +1,6 @@
 .App {
   text-align: center;
+
 }
 
 .App-logo {
@@ -25,4 +26,20 @@
 @keyframes App-logo-spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
+}
+
+.Home {
+  text-align: center;
+  font-size:30px;
+  margin-top: 200px;
+
+}
+
+.header{
+  position:static;
+}
+
+body {
+  background-image: url("https://image.freepik.com/free-vector/abstract-geometric-pattern-background_1319-242.jpg");
+  background-size: cover;
 }

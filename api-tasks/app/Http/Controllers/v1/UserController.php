@@ -4,7 +4,6 @@ namespace App\Http\Controllers\v1;
 
 use App\Http\Controllers\Controller;
 use App\Role;
-use App\Task;
 use App\User;
 use GenTux\Jwt\JwtToken;
 use Illuminate\Http\Request;
@@ -78,7 +77,6 @@ class UserController extends Controller
                 'name' => 'required',
                 'email' => 'required|email|unique:users',
                 'password' => 'required'
-
             ];
 
             $validator = Validator::make($request->all(), $rules);
@@ -216,111 +214,6 @@ class UserController extends Controller
             $user->save();
 
             return $this->returnSuccess($user);
-        } catch (\Exception $e) {
-            return $this->returnError($e->getMessage());
-        }
-    }
-
-    /**
-     * Get user tasks
-     *
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function getTasks()
-    {
-        try {
-            $user = $this->validateSession();
-
-            $tasks = Task::where('assign', $user->id)->paginate(10);
-
-            return $this->returnSuccess($tasks);
-        } catch (\Exception $e) {
-            return $this->returnError($e->getMessage());
-        }
-    }
-
-    /**
-     * Create a task
-     *
-     * @param Request $request
-     *
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function createTask(Request $request)
-    {
-        try {
-            $user = $this->validateSession();
-
-            $rules = [
-                'name' => 'required',
-                'description' => 'required',
-            ];
-
-            $validator = Validator::make($request->all(), $rules);
-
-            if (!$validator->passes()) {
-                return $this->returnBadRequest('Please fill all required fields');
-            }
-
-            $task = new Task();
-
-            $task->name = $request->name;
-            $task->description = $request->description;
-            $task->status = Task::STATUS_NEW;
-            $task->user_id = $user->id;
-            $task->assign = $user->id;
-
-
-            $task->save();
-
-            return $this->returnSuccess($task);
-        } catch (\Exception $e) {
-            return $this->returnError($e->getMessage());
-        }
-    }
-
-    /**
-     * Update a task
-     *
-     * @param Request $request
-     * @param $id
-     *
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function updateTask(Request $request, $id)
-    {
-        try {
-            $task = Task::find($id);
-            $user = $this->validateSession();
-
-            if($task->user_id != $user->id){
-                return $this->returnBadRequest("This task is not yours");
-            }
-            if ($request->has('name')) {
-                $task->name = $request->name;
-            }
-
-            if ($request->has('description')) {
-                $task->description = $request->description;
-            }
-
-            if ($request->has('status')) {
-                $task->status = $request->status;
-            }
-
-            if ($request->has('id')) {
-                $idUser = User::where('id', $request->id)->first();
-
-                if (!$idUser) {
-                    return $this->returnBadRequest('User does not exist');
-                } else {
-                    $task->assign = $request->id;
-                }
-            }
-
-            $task->save();
-
-            return $this->returnSuccess($task);
         } catch (\Exception $e) {
             return $this->returnError($e->getMessage());
         }

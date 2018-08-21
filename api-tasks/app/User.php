@@ -47,6 +47,7 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
     ];
 
     protected $visible = [
+    	'id',
         'name',
         'email',
         'role_id'
@@ -85,7 +86,7 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
      */
     public function tasks()
     {
-        return $this->hasMany('App\Task', 'assign', 'id');
+        return $this->hasMany('App/Task', 'assign', 'id');
     }
 
     /**

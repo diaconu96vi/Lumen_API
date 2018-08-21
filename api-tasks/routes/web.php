@@ -36,31 +36,23 @@ $router->group(['namespace' => API_VERSION, 'prefix' => API_VERSION, 'middleware
 /** Routes with auth */
 $router->group(['namespace' => API_VERSION, 'prefix' => API_VERSION, 'middleware' => 'cors|jwt'], function () use ($router) {
     $router->group(['prefix' => 'user'], function () use ($router) {
-        //user panel
         $router->get('/', ['uses' => 'UserController@get']);
         $router->patch('/', ['uses' => 'UserController@update']);
-        //tasks for user
-        $router->get('/tasks', ['uses' => 'UserController@getTasks']);
-        $router->group(['prefix' => 'task'], function () use ($router) {
-            $router->post('/', ['uses' => 'UserController@createTask']);
-            $router->patch('/{id}', ['uses' => 'UserController@updateTask']);
-        });
     });
 
     $router->group(['prefix' => 'admin', 'middleware' => 'admin'], function () use ($router) {
-        //users for admin
         $router->get('/users', ['uses' => 'AdminController@getUsers']);
         $router->group(['prefix' => 'user'], function () use ($router) {
             $router->post('/', ['uses' => 'AdminController@createUser']);
             $router->patch('/{id}', ['uses' => 'AdminController@updateUser']);
             $router->delete('/{id}', ['uses' => 'AdminController@deleteUser']);
         });
-        //tasks for admin
-        $router->get('/tasks', ['uses' => 'AdminController@getTasks']);
-        $router->group(['prefix' => 'task'], function () use ($router) {
-            $router->post('/', ['uses' => 'AdminController@createTask']);
-            $router->patch('/{id}', ['uses' => 'AdminController@updateTask']);
-            $router->delete('/{id}', ['uses' => 'AdminController@deleteTask']);
-        });
+    });
+
+    $router->get('/tasks', ['uses' => 'TaskController@getAll']);
+    $router->group(['prefix' => 'user'], function () use ($router) {
+        $router->post('/', ['uses' => 'TaskController@create']);
+        $router->patch('/{id}', ['uses' => 'TaskController@update']);
+        $router->delete('/{id}', ['uses' => 'TaskController@delete']);
     });
 });
